@@ -1,0 +1,21 @@
+{% for msg in messages %}
+<div class="msg {% if msg[1] == user %}mine{% endif %}">
+    <b>{{ msg[1] }}</b>:
+
+    {% if msg[4] %}
+        {% if msg[4].endswith('.png') or msg[4].endswith('.jpg') or msg[4].endswith('.jpeg') %}
+            <br><img src="/static/uploads/{{ msg[4] }}" width="120">
+        {% elif msg[4].endswith('.mp4') %}
+            <br><video width="150" controls>
+                <source src="/static/uploads/{{ msg[4] }}">
+            </video>
+        {% else %}
+            <br><a href="/static/uploads/{{ msg[4] }}" download>📎 تحميل الملف</a>
+        {% endif %}
+    {% else %}
+        {{ msg[2] }}
+    {% endif %}ل
+
+    <div class="time">{{ msg[3] }}</div>
+</div>
+{% endfor %}

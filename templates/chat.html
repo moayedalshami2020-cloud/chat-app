@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { margin: 0; }
+
+.bg {
+    width: 100%;
+    height: 100vh;
+    background: url("/static/chat.png") no-repeat center;
+    background-size: 100% 100%;
+    position: relative;
+}
+
+/* 🔧 إنزال الشات + تقصير عرض */
+.chat-box {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 65%;
+    height: 26%;
+
+    overflow-y: scroll;
+}
+
+/* الرسائل */
+.msg {
+    background: #ddd;
+    margin: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 28px;
+}
+
+/* رسائلي */
+.mine {
+    background: lightgreen;
+    text-align: right;
+}
+
+/* الوقت */
+.time {
+    font-size: 14px;
+}
+
+/* 🔧 إنزال الفورم داخل الإطار */
+.form {
+    position: absolute;
+    bottom: 18%;
+    width: 100%;
+    text-align: center;
+}
+
+/* الكتابة */
+input[type="text"] {
+    width: 55%;
+    padding: 12px;
+    font-size: 20px;
+
+    background: rgba(255,215,0,0.75);
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+/* زر */
+button {
+    margin-top: 6px;
+    padding: 10px 20px;
+    font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg">
+
+<div class="chat-box" id="messages">
+    {% for msg in messages %}
+        <div class="msg {% if msg[1] == user %}mine{% endif %}">
+            <b>{{ msg[1] }}</b>:
+
+            {% if msg[4] %}
+                {% if msg[4].endswith('.png') or msg[4].endswith('.jpg') or msg[4].endswith('.jpeg') %}
+                    <br><img src="/static/uploads/{{ msg[4] }}" width="120">
+                {% elif msg[4].endswith('.mp4') %}
+                    <br><video width="150" controls>
+                        <source src="/static/uploads/{{ msg[4] }}">
+                    </video>
+                {% else %}
+                    <br><a href="/static/uploads/{{ msg[4] }}" download>📎 تحميل الملف</a>
+                {% endif %}
+            {% else %}
+                {{ msg[2] }}
+            {% endif %}
+
+            <div class="time">{{ msg[3] }}</div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- 🔥 رفع ملفات + نص -->
+<form method="POST" action="/send" class="form" enctype="multipart/form-data">
+    <input type="text" name="message">
+    <br>
+    <input type="file" name="file">
+    <br>
+    <button>Send</button>
+</form>
+
+</div>
+
+<!-- 🔔 إشعارات + تحديث -->
+<script>
+let lastCount = 0;
+
+if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+}
+
+setInterval(function() {
+    fetch('/messages')
+    .then(res => res.text())
+    .then(data => {
+
+        let count = (data.match(/class="msg/g) || []).length;
+
+        if (count > lastCount && lastCount !== 0) {
+            if (Notification.permission === "granted") {
+                new Notification("📩 رسالة جديدة");
+            }
+        }
+
+        lastCount = count;
+
+        document.getElementById("messages").innerHTML = data;
+    });
+}, 2000);
+</script>
+
+</body>
+</html>
